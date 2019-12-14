@@ -3,5 +3,9 @@ module.exports = {
         alias: {
             fs: 'pdfkit/js/virtual-fs.js'
         }
+    },
+    target: 'async-node',
+    node: {
+        fs: "empty"
     }
 }
