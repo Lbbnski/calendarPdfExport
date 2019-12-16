@@ -8,17 +8,32 @@
       </v-row>
       <v-row>
         <v-spacer></v-spacer>
-        <v-file-input multiple chips label="Dateien" v-model="files">
+        <v-file-input multiple accept=".ics" chips label="Dateien" v-model="files">
           <template v-slot:selection="{text, file}">
-            <v-menu bottom offset-y transition="slide-y-transition">
-              <template v-slot:activator="{ on }">
-                <v-chip @click.stop="{}" v-on="on" :color="getColorForFile(file)">{{text}}</v-chip>
+            <color-picker-dialog>
+              <template v-slot:open="{ on }">
+                <v-menu
+                        bottom
+                        offset-y
+                        transition="slide-y-transition">
+                  <template v-slot:activator="{ on }">
+                    <v-chip @click.stop="{}" v-on="on" :color="getColorForFile(file)">
+                      {{text}}
+                    </v-chip>
+                  </template>
+                  <v-list>
+                    <template>
+                      <v-list-item v-on="on">
+                        bearbeiten
+                      </v-list-item>
+                    </template>
+                    <v-list-item @click="deleteFile(file)">
+                      löschen
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
               </template>
-              <v-list>
-                <v-list-item @click="showcolorPicker(file)">bearbeiten</v-list-item>
-                <v-list-item @click="deleteFile(file)">löschen</v-list-item>
-              </v-list>
-            </v-menu>
+            </color-picker-dialog>
           </template>
         </v-file-input>
         <v-spacer></v-spacer>
@@ -39,8 +54,11 @@ import { Component, Vue } from "vue-property-decorator";
 import moment from "moment-mini";
 //import { readFileSync } from "fs";
 import { Calendar, Parser, Event } from "ikalendar";
+import ColorPickerDialog from "@/components/ColorPickerDialog.vue";
 
-@Component({})
+@Component({
+  components: { ColorPickerDialog }
+})
 export default class Home extends Vue {
   // url: string = '';
   //
@@ -106,9 +124,9 @@ export default class Home extends Vue {
     const parser: Parser = new Parser();
     const calArr: Calendar[] = [];
     this.files.forEach(value => {
-      this.fileReader.readAsText(value);
-      const fileContent = this.fileReader.result;
-      calArr.push(parser.parse(fileContent as string));
+      let fileContent: string = readFileSync(value, { encoding: 'utf8' });
+      const cal: Calendar = parser.parse(fileContent);
+      calArr.push(cal);
     });
     this.addCalendarContentToDoc(doc, calArr);
   }
